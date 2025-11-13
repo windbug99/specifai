@@ -5,6 +5,11 @@ import { useRouter } from "next/navigation";
 import { useProject } from "@/lib/context";
 import { ECOMMERCE_QUESTIONS } from "@/lib/questions";
 import { UserAnswer } from "@/types";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import { Check } from "lucide-react";
 
 export default function QuestionsPage() {
   const router = useRouter();
@@ -99,166 +104,165 @@ export default function QuestionsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-8">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-gray-50 p-4 md:p-8">
       <div className="max-w-7xl mx-auto">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8">
           {/* 질문 영역 */}
           <div className="space-y-6">
-            <div className="bg-white rounded-lg shadow-lg p-6">
-              <div className="mb-6">
-                <div className="flex justify-between items-center mb-2">
-                  <span className="text-sm text-gray-600">
-                    질문 {currentQuestionIndex + 1} / {questions.length}
-                  </span>
-                  <span className="text-sm text-gray-600">
-                    {Math.round(progress)}%
-                  </span>
+            <Card className="shadow-lg">
+              <CardHeader>
+                <div className="flex justify-between items-center mb-4">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-medium text-gray-600">
+                      질문 {currentQuestionIndex + 1}
+                    </span>
+                    <span className="text-sm text-gray-400">/</span>
+                    <span className="text-sm text-gray-600">
+                      {questions.length}
+                    </span>
+                  </div>
+                  <Badge variant="default" className="text-xs">
+                    {Math.round(progress)}% 완료
+                  </Badge>
                 </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div
-                    className="bg-blue-600 h-2 rounded-full transition-all"
-                    style={{ width: `${progress}%` }}
-                  ></div>
+                <Progress value={progress} max={100} className="h-2" />
+              </CardHeader>
+
+              <CardContent className="space-y-6">
+                <div>
+                  <Badge variant="secondary" className="mb-3">
+                    {currentQuestion.category}
+                  </Badge>
+                  <CardTitle className="mb-2">
+                    {currentQuestion.question}
+                  </CardTitle>
+                  {currentQuestion.type === "multiple" && (
+                    <CardDescription>
+                      여러 개 선택 가능
+                    </CardDescription>
+                  )}
                 </div>
-              </div>
 
-              <div className="mb-6">
-                <span className="inline-block px-3 py-1 bg-blue-100 text-blue-800 text-sm font-medium rounded-full mb-3">
-                  {currentQuestion.category}
-                </span>
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                  {currentQuestion.question}
-                </h2>
-                {currentQuestion.type === "multiple" && (
-                  <p className="text-sm text-gray-500">
-                    (여러 개 선택 가능)
-                  </p>
-                )}
-              </div>
-
-              <div className="space-y-3 mb-6">
-                {currentQuestion.options.map((option) => {
-                  const isSelected = selectedOptions.includes(option.id);
-                  return (
-                    <button
-                      key={option.id}
-                      onClick={() => handleOptionSelect(option.id)}
-                      className={`w-full text-left p-4 border-2 rounded-lg transition-all ${
-                        isSelected
-                          ? "border-blue-500 bg-blue-50"
-                          : "border-gray-200 hover:border-gray-300"
-                      }`}
-                    >
-                      <div className="flex items-start">
-                        <div
-                          className={`mt-1 flex-shrink-0 w-5 h-5 rounded ${
-                            currentQuestion.type === "single"
-                              ? "rounded-full"
-                              : "rounded"
-                          } border-2 mr-3 ${
-                            isSelected
-                              ? "bg-blue-500 border-blue-500"
-                              : "border-gray-300"
-                          } flex items-center justify-center`}
-                        >
-                          {isSelected && (
-                            <svg
-                              className="w-3 h-3 text-white"
-                              fill="currentColor"
-                              viewBox="0 0 20 20"
-                            >
-                              <path
-                                fillRule="evenodd"
-                                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                                clipRule="evenodd"
-                              />
-                            </svg>
-                          )}
-                        </div>
-                        <div className="flex-1">
-                          <p className="font-semibold text-gray-900 mb-1">
-                            {option.text}
-                          </p>
-                          <p className="text-sm text-gray-600">
-                            {option.description}
-                          </p>
-                          {option.impact && option.impact.dev_time_days > 0 && (
-                            <p className="text-xs text-gray-500 mt-1">
-                              개발 시간: +{option.impact.dev_time_days}일 |
-                              비용: +{(option.impact.cost_krw / 10000).toFixed(0)}만원
+                <div className="space-y-3">
+                  {currentQuestion.options.map((option) => {
+                    const isSelected = selectedOptions.includes(option.id);
+                    return (
+                      <button
+                        key={option.id}
+                        onClick={() => handleOptionSelect(option.id)}
+                        className={`w-full text-left p-5 border-2 rounded-xl transition-all duration-200 ${
+                          isSelected
+                            ? "border-blue-500 bg-blue-50 shadow-md ring-2 ring-blue-200"
+                            : "border-gray-200 hover:border-blue-300 hover:bg-gray-50 hover:shadow-sm"
+                        }`}
+                      >
+                        <div className="flex items-start gap-4">
+                          <div
+                            className={`mt-0.5 flex-shrink-0 w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all duration-200 ${
+                              currentQuestion.type === "single"
+                                ? "rounded-full"
+                                : "rounded-lg"
+                            } ${
+                              isSelected
+                                ? "bg-blue-600 border-blue-600 scale-110"
+                                : "border-gray-300 bg-white"
+                            }`}
+                          >
+                            {isSelected && (
+                              <Check className="w-4 h-4 text-white" strokeWidth={3} />
+                            )}
+                          </div>
+                          <div className="flex-1">
+                            <p className={`font-semibold mb-1 transition-colors ${
+                              isSelected ? "text-blue-900" : "text-gray-900"
+                            }`}>
+                              {option.text}
                             </p>
-                          )}
+                            <p className="text-sm text-gray-600">
+                              {option.description}
+                            </p>
+                          </div>
                         </div>
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
+                      </button>
+                    );
+                  })}
+                </div>
 
-              <div className="flex gap-3">
-                <button
-                  onClick={handlePrevious}
-                  disabled={currentQuestionIndex === 0}
-                  className="px-6 py-3 bg-gray-200 text-gray-700 font-semibold rounded-lg hover:bg-gray-300 transition-colors disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed"
-                >
-                  ← 이전
-                </button>
-                <button
-                  onClick={handleNext}
-                  disabled={selectedOptions.length === 0}
-                  className="flex-1 px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
-                >
-                  {currentQuestionIndex < questions.length - 1
-                    ? "다음 →"
-                    : "완료 →"}
-                </button>
-              </div>
-            </div>
+                <div className="flex gap-3 pt-4">
+                  <Button
+                    onClick={handlePrevious}
+                    disabled={currentQuestionIndex === 0}
+                    variant="outline"
+                    size="default"
+                  >
+                    ← 이전
+                  </Button>
+                  <Button
+                    onClick={handleNext}
+                    disabled={selectedOptions.length === 0}
+                    variant="default"
+                    size="default"
+                    className="flex-1"
+                  >
+                    {currentQuestionIndex < questions.length - 1
+                      ? "다음 →"
+                      : "완료 →"}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
           </div>
 
           {/* 명세서 미리보기 영역 */}
           <div className="hidden lg:block">
-            <div className="bg-white rounded-lg shadow-lg p-6 sticky top-8">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-gray-900">
-                  📄 명세서 미리보기
-                </h3>
-                <button
-                  onClick={() => setShowSpec(!showSpec)}
-                  className="text-sm text-blue-600 hover:text-blue-700"
-                >
-                  {showSpec ? "접기" : "펼치기"}
-                </button>
-              </div>
-              {showSpec && (
-                <div className="prose prose-sm max-w-none">
-                  <div className="bg-gray-50 p-4 rounded-lg max-h-[600px] overflow-y-auto">
+            <Card className="shadow-lg sticky top-8">
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-lg">📄 명세서 미리보기</CardTitle>
+                  <Button
+                    onClick={() => setShowSpec(!showSpec)}
+                    variant="ghost"
+                    size="sm"
+                  >
+                    {showSpec ? "접기" : "펼치기"}
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                {showSpec && (
+                  <div className="bg-gray-50 p-4 rounded-lg max-h-[600px] overflow-y-auto border border-gray-200">
                     <pre className="whitespace-pre-wrap text-xs text-gray-700 font-mono">
                       {generateSpecification(projectState.answers)}
                     </pre>
                   </div>
-                </div>
-              )}
-              {!showSpec && (
-                <div className="text-sm text-gray-600">
-                  <p className="mb-2">
-                    현재까지 {projectState.answers.length}개 질문에 답변하셨습니다.
-                  </p>
-                  <p>답변할 때마다 명세서가 실시간으로 생성됩니다.</p>
-                </div>
-              )}
-            </div>
+                )}
+                {!showSpec && (
+                  <div className="text-sm text-gray-600 space-y-2">
+                    <p className="flex items-center gap-2">
+                      <Badge variant="success" className="text-xs">
+                        {projectState.answers.length}개
+                      </Badge>
+                      <span>질문에 답변하셨습니다</span>
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      답변할 때마다 명세서가 실시간으로 생성됩니다.
+                    </p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
           </div>
         </div>
 
         {/* 모바일용 명세서 보기 버튼 */}
-        <div className="lg:hidden fixed bottom-4 right-4">
-          <button
+        <div className="lg:hidden fixed bottom-6 right-6">
+          <Button
             onClick={() => setShowSpec(!showSpec)}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg shadow-lg hover:bg-blue-700 transition-colors"
+            size="lg"
+            className="shadow-lg"
           >
             📄 명세서 보기
-          </button>
+          </Button>
         </div>
       </div>
     </div>
