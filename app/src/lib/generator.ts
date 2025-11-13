@@ -2,142 +2,155 @@ import { ProjectState } from "@/types";
 import { ECOMMERCE_QUESTIONS } from "./questions";
 import { getProjectTypeName, getComplexityName } from "./analyzer";
 
-// Markdown 명세서 생성
+// Markdown 명세서 생성 - 표 기반 SRS 서식
 export function generateMarkdownSpec(projectState: ProjectState): string {
   if (!projectState.analysis) return "";
 
   const { analysis, initialInput, answers } = projectState;
   const date = new Date().toLocaleDateString("ko-KR");
+  const projectTypeName = getProjectTypeName(analysis.type);
 
-  let md = `# 프로젝트 요구사항 명세서\n\n`;
-  md += `**문서 버전**: 1.0\n`;
-  md += `**작성일**: ${date}\n`;
-  md += `**프로젝트 유형**: ${getProjectTypeName(analysis.type)}\n\n`;
+  let md = `## [${projectTypeName}] 요구사항 명세서 (SRS)\n\n`;
+
+  // 문서 정보 테이블
+  md += `| 항목 | 내용 |\n`;
+  md += `| :--- | :--- |\n`;
+  md += `| 문서 버전 | v1.0 |\n`;
+  md += `| 작성일 | ${date} |\n`;
+  md += `| 작성자 | Specifai |\n\n`;
   md += `---\n\n`;
 
-  // 1. 프로젝트 개요
-  md += `## 1. 프로젝트 개요\n\n`;
-  md += `### 1.1 프로젝트 목적\n`;
-  md += `${initialInput}\n\n`;
+  // 1. 개요
+  md += `### 1. 개요 (Introduction)\n\n`;
+  md += `| 항목 | 상세 내용 |\n`;
+  md += `| :--- | :--- |\n`;
+  md += `| **1.1 문서의 목적** | 이 문서는 ${projectTypeName} 시스템 개발을 위한 요구사항을 정의합니다. |\n`;
+  md += `| **1.2 프로젝트 범위** | ${initialInput} |\n`;
+  md += `| **1.3 용어 정의 및 약어** | * SRS: Software Requirement Specification <br> * API: Application Programming Interface <br> * UI/UX: User Interface/User Experience |\n`;
+  md += `| **1.4 참고 자료** | * Specifai 질의응답 기반 명세서 <br> * 한국형 ${projectTypeName} 표준 기능 참고 |\n\n`;
 
-  md += `### 1.2 프로젝트 범위\n`;
-  md += `본 문서는 ${getProjectTypeName(analysis.type)} 프로젝트의 요구사항을 정의합니다. `;
-  md += `${getComplexityName(analysis.complexity)} 복잡도의 프로젝트로 분류되며, `;
-  md += `아래 명시된 기능 요구사항과 비기능 요구사항을 포함합니다.\n\n`;
-
-  md += `---\n\n`;
-
-  // 2. 기능 요구사항
-  md += `## 2. 기능 요구사항 (Functional Requirements)\n\n`;
+  // 2. 전반적인 설명
+  md += `### 2. 전반적인 설명 (Overall Description)\n\n`;
 
   const categorizedAnswers = groupByCategory(answers);
   const functionalReqs = buildFunctionalRequirements(categorizedAnswers);
-
-  let reqId = 1;
-  Object.entries(functionalReqs).forEach(([category, features]) => {
-    md += `### 2.${reqId} ${category}\n\n`;
-
-    features.forEach((feature, idx) => {
-      md += `#### FR-${reqId}.${idx + 1} ${feature.title}\n\n`;
-      md += `**설명**: ${feature.description}\n\n`;
-
-      if (feature.details && feature.details.length > 0) {
-        md += `**세부 요구사항**:\n`;
-        feature.details.forEach((detail) => {
-          md += `- ${detail}\n`;
-        });
-        md += `\n`;
-      }
-    });
-
-    reqId++;
-  });
-
-  md += `---\n\n`;
-
-  // 3. 비기능 요구사항
-  md += `## 3. 비기능 요구사항 (Non-Functional Requirements)\n\n`;
-
   const nonFunctionalReqs = buildNonFunctionalRequirements(categorizedAnswers);
 
-  if (nonFunctionalReqs.ui.length > 0) {
-    md += `### 3.1 UI/UX 요구사항\n\n`;
-    nonFunctionalReqs.ui.forEach((req, idx) => {
-      md += `**NFR-1.${idx + 1}**: ${req}\n\n`;
+  // 주요 기능 목록 생성
+  let productFunctions = "";
+  Object.entries(functionalReqs).forEach(([category, features]) => {
+    features.forEach((feature) => {
+      productFunctions += `* **${feature.title}**: ${feature.description} <br> `;
     });
-  }
+  });
+
+  md += `| 항목 | 상세 내용 |\n`;
+  md += `| :--- | :--- |\n`;
+  md += `| **2.1 제품의 관점** | 본 시스템은 ${projectTypeName} 분야의 신규 독립형 시스템으로 개발됩니다. |\n`;
+  md += `| **2.2 제품의 기능** | ${productFunctions} |\n`;
+  md += `| **2.3 사용자 클래스 및 특성** | * **일반 사용자**: 시스템의 주요 기능을 사용하는 최종 사용자 <br> * **관리자**: 시스템 운영 및 관리 권한을 가진 사용자 |\n`;
+  md += `| **2.4 운영 환경 및 기술 스택** | * **운영체제**: Linux (Ubuntu) 또는 클라우드 호스팅 <br> * **프론트엔드**: React.js 또는 Next.js, Tailwind CSS <br> * **백엔드**: Node.js (Express) 또는 Next.js API Routes <br> * **데이터베이스**: PostgreSQL 또는 MySQL <br> * **기타 도구**: Git, Docker, TypeScript |\n`;
+  md += `| **2.5 제약 사항** | * 본 명세서에 명시되지 않은 기능은 프로젝트 범위에 포함되지 않습니다. <br> * 외부 API 연동 시 해당 서비스의 정책을 준수해야 합니다. <br> * 디자인 가이드가 제공되지 않을 경우 기본 UI로 진행합니다. |\n\n`;
+
+  // 3. 구체적인 요구사항
+  md += `### 3. 구체적인 요구사항 (Specific Requirements)\n\n`;
+
+  // 3.1 기능 요구사항 (표 형식)
+  md += `#### 3.1 기능 요구사항 (Functional Requirements)\n\n`;
+  md += `| ID | 기능명 | 상세 설명 | 입력/출력 | 예외 처리 |\n`;
+  md += `| :--- | :--- | :--- | :--- | :--- |\n`;
+
+  let frCounter = 1;
+  Object.entries(functionalReqs).forEach(([category, features]) => {
+    features.forEach((feature) => {
+      const frId = `FR-${String(frCounter).padStart(3, '0')}`;
+      const details = feature.details.join(' <br> ');
+      md += `| ${frId} | ${feature.title} | ${feature.description} | ${details || '-'} | 입력 검증 실패 시 오류 메시지 표시 |\n`;
+      frCounter++;
+    });
+  });
+  md += `\n`;
+
+  // 3.2 비기능 요구사항 (표 형식)
+  md += `#### 3.2 비기능 요구사항 (Non-functional Requirements)\n\n`;
+  md += `| 항목 | 상세 내용 |\n`;
+  md += `| :--- | :--- |\n`;
 
   if (nonFunctionalReqs.performance.length > 0) {
-    md += `### 3.2 성능 요구사항\n\n`;
+    let perfReqs = "";
     nonFunctionalReqs.performance.forEach((req, idx) => {
-      md += `**NFR-2.${idx + 1}**: ${req}\n\n`;
+      perfReqs += `* [NR-P-${String(idx + 1).padStart(3, '0')}]: ${req} <br> `;
     });
+    md += `| **성능 (Performance)** | ${perfReqs} |\n`;
+  } else {
+    md += `| **성능 (Performance)** | * [NR-P-001]: 주요 페이지 로딩 시간은 3초를 초과해서는 안 됩니다. <br> * [NR-P-002]: 동시 접속자 처리 능력을 갖추어야 합니다. |\n`;
   }
 
   if (nonFunctionalReqs.security.length > 0) {
-    md += `### 3.3 보안 요구사항\n\n`;
+    let secReqs = "";
     nonFunctionalReqs.security.forEach((req, idx) => {
-      md += `**NFR-3.${idx + 1}**: ${req}\n\n`;
+      secReqs += `* [NR-S-${String(idx + 1).padStart(3, '0')}]: ${req} <br> `;
     });
+    md += `| **보안 (Security)** | ${secReqs} |\n`;
+  } else {
+    md += `| **보안 (Security)** | * [NR-S-001]: 사용자 비밀번호는 암호화되어 저장되어야 합니다. <br> * [NR-S-002]: HTTPS를 통한 데이터 전송을 사용해야 합니다. |\n`;
   }
 
-  md += `---\n\n`;
+  if (nonFunctionalReqs.ui.length > 0) {
+    let uiReqs = "";
+    nonFunctionalReqs.ui.forEach((req, idx) => {
+      uiReqs += `* [NR-C-${String(idx + 1).padStart(3, '0')}]: ${req} <br> `;
+    });
+    md += `| **호환성 (Compatibility)** | ${uiReqs} |\n`;
+  } else {
+    md += `| **호환성 (Compatibility)** | * [NR-C-001]: Chrome, Safari, Firefox 최신 버전에서 정상 작동해야 합니다. |\n`;
+  }
+  md += `\n`;
 
-  // 4. 시스템 환경
-  md += `## 4. 시스템 환경\n\n`;
-  md += `### 4.1 권장 기술 스택\n\n`;
-  md += `**Frontend**\n`;
-  md += `- 프레임워크: Next.js 14 또는 React 18\n`;
-  md += `- 스타일링: Tailwind CSS\n`;
-  md += `- 상태 관리: React Context 또는 Zustand\n\n`;
+  // 3.3 인터페이스 요구사항
+  md += `#### 3.3 인터페이스 요구사항 (Interface Requirements)\n\n`;
+  md += `| 항목 | 상세 내용 |\n`;
+  md += `| :--- | :--- |\n`;
+  md += `| **사용자 인터페이스 (UI)** | 반응형 웹 디자인을 적용하여 모바일과 PC에서 모두 사용 가능하도록 개발합니다. |\n`;
+  md += `| **하드웨어 인터페이스** | 특별한 하드웨어 연동 없음. 표준 웹 브라우저를 통해 접근 가능합니다. |\n`;
+  md += `| **소프트웨어 인터페이스** | RESTful API 또는 GraphQL을 통해 프론트엔드와 백엔드가 통신합니다. |\n\n`;
 
-  md += `**Backend**\n`;
-  md += `- 프레임워크: Next.js API Routes 또는 Node.js + Express\n`;
-  md += `- 데이터베이스: PostgreSQL\n`;
-  md += `- 인증: NextAuth.js 또는 JWT 기반 인증\n\n`;
+  // 4. 산출물 및 일정
+  md += `### 4. 산출물 및 일정 (Deliverables and Schedule)\n\n`;
 
-  md += `**Deployment**\n`;
-  md += `- 호스팅: Vercel, AWS, 또는 동등한 서비스\n`;
-  md += `- 데이터베이스: Supabase, AWS RDS, 또는 동등한 서비스\n\n`;
+  md += `#### 4.1 최종 산출물\n\n`;
+  md += `| ID | 산출물명 | 제출 형태 |\n`;
+  md += `| :--- | :--- | :--- |\n`;
+  md += `| DL-001 | 소스 코드 | Git 리포지토리 접근 권한 또는 압축 파일 |\n`;
+  md += `| DL-002 | 요구사항 명세서 | PDF 또는 Markdown 파일 |\n`;
+  md += `| DL-003 | 배포 가이드 | README.md 또는 별도 문서 |\n`;
+  md += `| DL-004 | API 문서 (해당 시) | Swagger/Postman Collection |\n\n`;
 
-  md += `### 4.2 개발 환경\n`;
-  md += `- 버전 관리: Git\n`;
-  md += `- 코드 품질: ESLint, Prettier\n`;
-  md += `- 타입 검사: TypeScript\n\n`;
+  md += `#### 4.2 프로젝트 일정 및 마일스톤 (Project Schedule & Milestones)\n\n`;
+  md += `| 마일스톤 | 예상 기간 | 상세 내용 | 완료 예정일 |\n`;
+  md += `| :--- | :--- | :--- | :--- |\n`;
+  md += `| 착수 및 환경 설정 | 1주차 | 개발 환경 설정, 기술 스택 확정 | 협의 필요 |\n`;
+  md += `| 핵심 기능 개발 | 2~4주차 | 주요 기능 개발 및 단위 테스트 | 협의 필요 |\n`;
+  md += `| 통합 및 테스트 | 5주차 | 전체 시스템 통합 테스트 | 협의 필요 |\n`;
+  md += `| 배포 및 인수인계 | 6주차 | 운영 환경 배포 및 문서 전달 | 협의 필요 |\n\n`;
 
-  md += `---\n\n`;
+  // 5. 검수 및 테스트
+  md += `### 5. 검수 및 테스트 (Acceptance and Testing)\n\n`;
+  md += `* **5.1 테스트 기준**: 3.1 기능 요구사항(FR)에 정의된 모든 기능이 정상 작동함을 확인합니다.\n`;
+  md += `* **5.2 검수 절차**: 개발 완료 후 클라이언트가 7일 내에 테스트를 진행하고 승인 여부를 통보합니다.\n`;
+  md += `* **5.3 검수 기준**: 명세서에 정의된 모든 기능이 구현되고, 치명적인 오류가 없어야 합니다.\n`;
+  md += `* **5.4 하자 보수**: 인수 후 30일간 명세서 범위 내 오류에 대한 무상 수정을 제공합니다.\n\n`;
 
-  // 5. 제약사항 및 가정
-  md += `## 5. 제약사항 및 가정\n\n`;
-  md += `### 5.1 제약사항\n`;
-  md += `- 본 명세서에 명시되지 않은 기능은 프로젝트 범위에 포함되지 않습니다.\n`;
-  md += `- 개발 범위 변경 시 별도 협의가 필요합니다.\n`;
-  md += `- 외부 서비스(결제, 인증 등) 연동 시 해당 서비스의 정책을 준수해야 합니다.\n\n`;
-
-  md += `### 5.2 가정사항\n`;
-  md += `- 개발에 필요한 외부 API 키 및 계정은 발주자가 제공합니다.\n`;
-  md += `- 서버 및 데이터베이스 호스팅 비용은 별도입니다.\n`;
-  md += `- 디자인 가이드 또는 시안이 제공되지 않을 경우 기본 디자인으로 진행합니다.\n\n`;
-
-  md += `---\n\n`;
-
-  // 6. 향후 확장 가능성
+  // 범위 제외 항목
   const outOfScope = buildOutOfScopeFeatures(categorizedAnswers);
   if (outOfScope.length > 0) {
-    md += `## 6. 현재 범위 제외 항목\n\n`;
+    md += `### 6. 현재 범위 제외 항목 (Out of Scope)\n\n`;
     md += `다음 기능들은 현재 프로젝트 범위에 포함되지 않으며, 향후 추가 개발이 가능합니다:\n\n`;
     outOfScope.forEach((feature) => {
-      md += `- ${feature}\n`;
+      md += `* ${feature}\n`;
     });
     md += `\n`;
-    md += `---\n\n`;
   }
-
-  // Footer
-  md += `## 문서 이력\n\n`;
-  md += `| 버전 | 작성일 | 작성자 | 변경 내용 |\n`;
-  md += `|------|--------|--------|----------|\n`;
-  md += `| 1.0 | ${date} | Specifai | 초안 작성 |\n\n`;
 
   md += `---\n\n`;
   md += `*본 문서는 [Specifai](https://specifai.com)를 통해 생성되었습니다.*\n`;
